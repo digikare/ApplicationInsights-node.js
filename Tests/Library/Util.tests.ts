@@ -305,6 +305,24 @@ describe("Library/Util", () => {
                 assert.deepEqual(http.request.getCall(0).args[0], expectedOptions);
                 assert.deepEqual(http.request.getCall(0).args[1], callback);
             });
+
+            it("should not override options when http_proxy is defined with the correct values and no_proxy is defined with the domain", () => {
+                const callback = sinon.spy();
+                const expectedOptions = {
+                    ...options,
+                    host: requestUrlParsed.hostname,
+                    port: requestUrlParsed.port,
+                    path: requestUrlParsed.pathname,
+                };
+
+                process.env.no_proxy = "abc.def.bing.com";
+                process.env.http_proxy = proxyUrl;
+                const req = Util.makeRequest(requestUrl, options, callback);
+
+                assert.equal(http.request.calledOnce, true);
+                assert.deepEqual(http.request.getCall(0).args[0], expectedOptions);
+                assert.deepEqual(http.request.getCall(0).args[1], callback);
+            });
         });
 
 
@@ -376,6 +394,25 @@ describe("Library/Util", () => {
                     }
                 };
 
+                process.env.https_proxy = proxyUrl;
+                const req = Util.makeRequest(requestUrl, options, callback);
+
+                assert.equal(https.request.calledOnce, false);
+                assert.equal(http.request.calledOnce, true);
+                assert.deepEqual(http.request.getCall(0).args[0], expectedOptions);
+                assert.deepEqual(http.request.getCall(0).args[1], callback);
+            });
+
+            it("should not override options when https_proxy is defined with the correct values and no_proxy is defined with the domain", () => {
+                const callback = sinon.spy();
+                const expectedOptions = {
+                    ...options,
+                    host: requestUrlParsed.hostname,
+                    port: requestUrlParsed.port,
+                    path: requestUrlParsed.pathname,
+                };
+
+                process.env.no_proxy = "abc.def.bing.com";
                 process.env.https_proxy = proxyUrl;
                 const req = Util.makeRequest(requestUrl, options, callback);
 
