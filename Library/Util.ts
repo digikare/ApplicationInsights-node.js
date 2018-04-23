@@ -235,7 +235,7 @@ class Util {
             // I do not implement the wildcard matching. only full hostname match works at the moment
             if (domainList.length > 0) {
                 const found = domainList.filter((domain) => requestUrlParsed.hostname === domain);
-                needProxy = found.length > 0;
+                needProxy = found.length === 0;
             }
         }
 
