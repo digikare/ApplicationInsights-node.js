@@ -218,12 +218,26 @@ class Util {
             requestUrl = 'https:' + requestUrl;
         }
 
-        var requestUrlParsed = url.parse(requestUrl);
-        var options = {...requestOptions,
+        const requestUrlParsed = url.parse(requestUrl);
+        let options = {...requestOptions,
             host: requestUrlParsed.hostname,
             port: requestUrlParsed.port,
             path: requestUrlParsed.pathname,
         };
+
+        // handle no_proxy env var
+        const no_proxy: string = process.env.no_proxy || undefined;
+        let needProxy: boolean = true;
+        if (no_proxy) {
+            const domainList: string[] = no_proxy.split(',').map((item: string) => item.trim()).filter((val: string) => val);
+
+            // find out if the current hostname is in no_proxy at the moment.
+            // I do not implement the wildcard matching. only full hostname match works at the moment
+            if (domainList.length > 0) {
+                const found = domainList.filter((domain) => requestUrlParsed.hostname === domain);
+                needProxy = found.length > 0;
+            }
+        }
 
         var proxyUrl: string = undefined;
 
@@ -234,7 +248,7 @@ class Util {
             proxyUrl = process.env.http_proxy || undefined;
         }
 
-        if (proxyUrl) {
+        if (needProxy && proxyUrl) {
             if (proxyUrl.indexOf('//') === 0) {
                 proxyUrl = 'http:' + proxyUrl;
             }
